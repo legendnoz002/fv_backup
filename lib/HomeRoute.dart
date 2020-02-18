@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'EventTab.dart';
 import 'ProfileTab.dart';
+import 'package:barcode_scan/barcode_scan.dart';
 
 class HomeRoute extends StatefulWidget {
   @override
@@ -62,7 +63,7 @@ class _HomeRouteState extends State<HomeRoute> {
                 tooltip: "JOIN",
                 iconSize: 50.0,
                 onPressed: () {
-                  //scan();
+                  scan();
                 },
               ),
             ),
@@ -72,30 +73,30 @@ class _HomeRouteState extends State<HomeRoute> {
     );
   }
 
-  // Future scan() async {
-  //   try {
-  //     String barcode = await BarcodeScanner.scan();
-  //     setState(() {
-  //       this.barcode = barcode;
-  //     });
-  //     Fluttertoast.showToast(
-  //         msg: barcode,
-  //         toastLength: Toast.LENGTH_SHORT,
-  //         gravity: ToastGravity.CENTER,
-  //         timeInSecForIos: 1,
-  //         backgroundColor: Colors.red,
-  //         textColor: Colors.white,
-  //         fontSize: 16.0);
-  //   } on PlatformException catch (e) {
-  //     if (e.code == BarcodeScanner.CameraAccessDenied) {
-  //       // The user did not grant the camera permission.
-  //     } else {
-  //       // Unknown error.
-  //     }
-  //   } on FormatException {
-  //     // User returned using the "back"-button before scanning anything.
-  //   } catch (e) {
-  //     // Unknown error.
-  //   }
-  // }
+  Future scan() async {
+    try {
+      String barcode = await BarcodeScanner.scan();
+      setState(() {
+        this.barcode = barcode;
+      });
+      Fluttertoast.showToast(
+          msg: barcode,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIos: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } on PlatformException catch (e) {
+      if (e.code == BarcodeScanner.CameraAccessDenied) {
+        // The user did not grant the camera permission.
+      } else {
+        // Unknown error.
+      }
+    } on FormatException {
+      // User returned using the "back"-button before scanning anything.
+    } catch (e) {
+      // Unknown error.
+    }
+  }
 }
