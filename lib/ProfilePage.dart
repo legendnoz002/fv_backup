@@ -9,8 +9,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void logOut() async {
     prefs = await SharedPreferences.getInstance();
-    prefs.setString("token", "");
+    prefs.setString("token", null);
     prefs.setBool("isLogged", false);
+    prefs.setString("loggedUser", null);
     print("logout success");
     Navigator.pushReplacementNamed(context, '/login');
   }

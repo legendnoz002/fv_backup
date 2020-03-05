@@ -9,7 +9,7 @@ void main() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isLogged = (prefs.getBool('isLogged') ?? false);
 
-  prefs.setString("URL", "https://14d3cb01.ngrok.io/mobile/");
+  prefs.setString("URL", "https://4468fd68.ngrok.io/mobile/");
 
   var home;
   if (isLogged) {

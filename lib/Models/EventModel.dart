@@ -1,8 +1,8 @@
 
 class EventModel{
-  final int id;
-  final String title;
-  final String image;
+  final String event_id;
+  final String event_name;
+  final String type;
 
-  EventModel(this.id,this.title,this.image);
+  EventModel(this.event_id,this.event_name,this.type);
 }

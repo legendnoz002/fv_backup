@@ -4,23 +4,46 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'Models/EventModel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert' as convert;
 
 class EventListPage extends StatefulWidget {
   _EventListState createState() => _EventListState();
 }
 
 class _EventListState extends State<EventListPage> {
+  SharedPreferences sharedPreferences;
+  String URL;
+  String URLprefix = "get_event";
   var _jsonData;
   List<EventModel> events = [];
+  Future _future;
+
+  @override
+  void initState() {
+    _future = _getData();
+    super.initState();
+  }
+
+  void loadURL() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    setState(() {
+      URL = sharedPreferences.getString("URL") + URLprefix;
+    });
+  }
 
   @override
   Future<List<EventModel>> _getData() async {
-    http.Response _res = await http
-        .get("http://www.json-generator.com/api/json/get/bUJJCmMnpK?indent=2");
+    await loadURL();
+    var payload = {"username": sharedPreferences.getString("user")};
+    http.Response _res = await http.post(URL,
+        body: convert.jsonEncode(payload),
+        headers: {"Content-Type": "application/json"});
     events.clear();
     _jsonData = json.decode(_res.body);
+    print(_jsonData);
     for (var u in _jsonData) {
-      EventModel _event = EventModel(u["id"], u["title"], u["img"]);
+      EventModel _event = EventModel(u["event_id"],u["event_name"], u["type"]);
       events.add(_event);
     }
     print(events.length);
@@ -31,12 +54,12 @@ class _EventListState extends State<EventListPage> {
   Widget build(BuildContext context) {
     // TODO: implement build
     return FutureBuilder(
-      future: _getData(),
+      future: _future,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.data == null) {
           return Container(
             child: Center(
-              child: Text("Loading"),
+              child: CircularProgressIndicator(),
             ),
           );
         } else {
@@ -46,11 +69,20 @@ class _EventListState extends State<EventListPage> {
               return Card(
                 color: Color(0xff3d343b),
                 child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(snapshot.data[index].image),
+                  leading: Container(
+                    height: 30.0,
+                    width: 30.0,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20.0),
+                        color: Colors.yellow[500]),
+                    child: snapshot.data[index].type == "vacation"
+                        ? Icon(Icons.directions_bike, color: Colors.black)
+                        : snapshot.data[index].type == "work"
+                            ? Icon(Icons.work, color: Colors.black)
+                            : Icon(Icons.change_history, color: Colors.black),
                   ),
                   title: Text(
-                    snapshot.data[index].title,
+                    snapshot.data[index].event_name,
                     style: TextStyle(
                         fontFamily: "roboto",
                         fontSize: 20,
@@ -74,9 +106,9 @@ class _EventListState extends State<EventListPage> {
 }
 
 class _DetailPage extends StatelessWidget {
-  final EventModel user;
+  final EventModel event;
 
-  _DetailPage(this.user);
+  _DetailPage(this.event);
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +116,7 @@ class _DetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xff3d343b),
-        title: Text(user.title),
+        title: Text(event.event_id),
       ),
     );
   }

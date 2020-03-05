@@ -32,6 +32,7 @@ class _LoginRouteState extends APIState {
     sharedPreferences = await SharedPreferences.getInstance();
     sharedPreferences.setBool("isLogged", true);
     sharedPreferences.setString("token", responseData["token"]);
+    sharedPreferences.setString("loggedUser", responseData["username"]);
     print("login success");
     Navigator.pushReplacementNamed(context, '/home');
   }
@@ -104,41 +105,19 @@ class _LoginRouteState extends APIState {
                           },
                           child: Padding(
                             padding:
-                                const EdgeInsets.only(left: 30.0, top: 20.0),
+                                const EdgeInsets.only(left: 30.0, top: 30.0, right: 30.0),
                             child: new Container(
                                 width: 60.0,
                                 height: 60.0,
                                 alignment: Alignment.center,
                                 decoration: new BoxDecoration(
                                     borderRadius:
-                                        new BorderRadius.circular(10.0),
+                                        new BorderRadius.circular(20.0),
                                     color: Colors.greenAccent),
                                 child: new Text(
                                   'Sign In',
                                   style: TextStyle(
                                       fontSize: 20.0, color: Colors.white),
-                                )),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.only(top: 20.0, right: 10.0),
-                            child: new Container(
-                                width: 60.0,
-                                height: 60.0,
-                                alignment: Alignment.center,
-                                decoration: new BoxDecoration(
-                                  borderRadius: new BorderRadius.circular(10.0),
-                                ),
-                                child: new Text(
-                                  'Forgot Password?',
-                                  style: TextStyle(
-                                      fontSize: 20.0,
-                                      color: Colors.greenAccent),
                                 )),
                           ),
                         ),

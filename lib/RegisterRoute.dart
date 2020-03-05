@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert' as convert;
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
 
 class RegisterRoute extends StatefulWidget {
   _RegisterRouteState createState() => _RegisterRouteState();
@@ -21,26 +24,34 @@ class _RegisterRouteState extends State<RegisterRoute> {
   String URLprefix = "register";
   dynamic responseData;
   String message;
+  File galleryFile;
 
   Map<String, String> getBody() {
     return {
       "username": username,
       "password": password,
       "firstname": firstname,
-      "lastname": lastname
+      "lastname": lastname,
     };
   }
 
-  Future<http.Response> getResponse(
-      String url, Map<String, String> body) async {
-    print("##################################");
-    print("this is body");
-    print(body);
-    print(URL);
-    print("##################################");
-    var response = await http.post(url,
-        body: convert.jsonEncode(body),
-        headers: {"Content-Type": "application/json"});
+  Future<http.Response> _register(File image) async {
+    String url = URL;
+    final mimeTypeData =
+        lookupMimeType(image.path, headerBytes: [0xFF, 0xD8]).split('/');
+    final imageUploadRequest = http.MultipartRequest('Post', Uri.parse(url));
+    final file = await http.MultipartFile.fromPath('file', image.path,
+        contentType: MediaType(mimeTypeData[0], mimeTypeData[1]));
+
+    imageUploadRequest.fields['username'] = username;
+    imageUploadRequest.fields['password'] = password;
+    imageUploadRequest.fields['firstname'] = firstname;
+    imageUploadRequest.fields['lastname'] = lastname;
+    imageUploadRequest.fields['ext'] = mimeTypeData[1];
+    imageUploadRequest.files.add(file);
+
+    final streamResponse = await imageUploadRequest.send();
+    final response = await http.Response.fromStream(streamResponse);
     return response;
   }
 
@@ -62,11 +73,11 @@ class _RegisterRouteState extends State<RegisterRoute> {
   }
 
   void process() async {
-    var body = getBody();
+    //var body = getBody();
     var response;
     var connected = true;
     try {
-      response = await getResponse(URL, body);
+      response = await _register(galleryFile);
     } catch (e) {
       connected = false;
       print(e);
@@ -111,6 +122,15 @@ class _RegisterRouteState extends State<RegisterRoute> {
     Navigator.pop(context);
   }
 
+  void selectImageFromGallery() async {
+    final _file = await ImagePicker.pickImage(source: ImageSource.camera);
+    if (_file != null) {
+      setState(() {
+        galleryFile = _file;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -148,6 +168,7 @@ class _RegisterRouteState extends State<RegisterRoute> {
                         child: new TextFormField(
                           validator: (value) {
                             if (value.isEmpty) return "Empty Username";
+                            if (value.length < 7) return "Atleast 8 digits";
                           },
                           onSaved: (val) => username = val,
                           decoration: InputDecoration(
@@ -238,6 +259,7 @@ class _RegisterRouteState extends State<RegisterRoute> {
                           controller: _pass,
                           validator: (value) {
                             if (value.isEmpty) return "Empty password";
+                            if (value.length < 7) return "Atleast 8 digits";
                             if (value != _confirmPass.text)
                               return "Password is not matched";
                           },
@@ -267,6 +289,7 @@ class _RegisterRouteState extends State<RegisterRoute> {
                           controller: _confirmPass,
                           validator: (value) {
                             if (value.isEmpty) return "Empty password";
+                            if (value.length < 7) return "Atleast 8 digits";
                             if (value != _pass.text)
                               return "Re-Password is not matched";
                           },
@@ -285,31 +308,37 @@ class _RegisterRouteState extends State<RegisterRoute> {
                   ),
                   Flexible(
                     flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 20.0, bottom: 15.0),
-                      child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black,
-                                blurRadius:
-                                    12.0, // has the effect of softening the shadow
-                                spreadRadius:
-                                    0.0, // has the effect of extending the shadow
-                                offset: Offset(
-                                  0.0, // horizontal, move right 10
-                                  0.0, // vertical, move down 10
-                                ),
-                              )
-                            ],
-                            image: new DecorationImage(
-                              fit: BoxFit.fill,
-                              image: new NetworkImage(
-                                  "https://i.imgur.com/BoN9kdC.png"),
-                            )),
+                    child: GestureDetector(
+                      onTap: () {
+                        selectImageFromGallery();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20.0, bottom: 15.0),
+                        child: Container(
+                          width: 150,
+                          height: 150,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black,
+                                  blurRadius:
+                                      12.0, // has the effect of softening the shadow
+                                  spreadRadius:
+                                      0.0, // has the effect of extending the shadow
+                                  offset: Offset(
+                                    0.0, // horizontal, move right 10
+                                    0.0, // vertical, move down 10
+                                  ),
+                                )
+                              ],
+                              image: new DecorationImage(
+                                  fit: BoxFit.fill,
+                                  image: galleryFile == null
+                                      ? new NetworkImage(
+                                          "https://i.kym-cdn.com/entries/icons/original/000/025/294/hrd.png")
+                                      : FileImage(galleryFile))),
+                        ),
                       ),
                     ),
                   ),

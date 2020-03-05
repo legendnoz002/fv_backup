@@ -48,7 +48,7 @@ class APIState extends State<API> {
     print(body);
     print(URL);
     print("##################################");
-    var response = await http.post(url, body: convert.jsonEncode(body), headers: {"Content-Type" : "application/json"});
+    http.Response response = await http.post(url, body: convert.jsonEncode(body), headers: {"Content-Type" : "application/json"});
     return response;
   }
 
